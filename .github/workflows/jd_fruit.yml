@@ -6,12 +6,14 @@ name: 东东农场
 on:
   schedule:
     - cron: '20 23,4,10 * * *'
+  watch:
+    types: started
 
 jobs:
   build:
 
     runs-on: ubuntu-latest
-
+    if: github.event.repository.owner.id == github.event.sender.id
     steps:
       - uses: actions/checkout@v1
       - name: Use Node.js 10.x
@@ -28,4 +30,4 @@ jobs:
           JD_COOKIE: ${{ secrets.JD_COOKIE }}
           PUSH_KEY: ${{ secrets.PUSH_KEY }}
           BARK_PUSH: ${{ secrets.BARK_PUSH }}
-          FruitShareCodes: ${{ secrets.FruitShareCodes }}
+          FruitShareCodes: ${{ secrets.FRUITSHARECODES }}
