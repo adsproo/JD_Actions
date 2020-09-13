@@ -1,3 +1,4 @@
+![Anurag's github stats](https://github-readme-stats.vercel.app/api?username=adsproo&show_icons=true&theme=merko)
 # JD_Actions
 自己用来京东签到脚本测试
 ##
