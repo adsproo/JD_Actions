@@ -1,5 +1,5 @@
 /*
-更新时间: 2020-09-12 22:30
+更新时间: 2020-09-19 21:30
 
 腾讯新闻签到修改版，可以自动阅读文章获取红包，该活动为瓜分百万现金挑战赛，针对幸运用户参与
 
@@ -46,7 +46,7 @@ Cookie获取后，请注释掉Cookie地址。
 */
 const $ = new Env('腾讯新闻');
 const notify = $.isNode() ? require('./sendNotify') : '';
-let s = $.getdata('delay')||500 // 间隔延迟时间
+let s = Number($.getdata('delay'))||200 // 间隔延迟时间
 let notifyInterval =$.getdata('notifynum')||50; //阅读篇数间隔通知开为1，常关为0;
 const TX_HOST = 'https://api.inews.qq.com/activity/v1/'
 
@@ -91,13 +91,12 @@ if (isGetCookie) {
       await showmsg();
   if ($.isNode()){
    if (readnum%notifyInterval==0){
-        await notify.sendNotify($.name+'\n'+subTile+'\n'+ detail);
+        await notify.sendNotify($.name,subTile+'\n'+detail);
     }
     else if (openreadred==readredtotal&&openvideored==videoredtotal){
-        await notify.sendNotify($.name+` 今日任务已完成✅`+'\n'+subTile+'\n'+ detail)
+        await notify.sendNotify($.name+` 今日任务已完成✅`,subTile+'\n'+ detail)
          }
-      console.log('-----------'+'\n'+$.name+'\n'+subTile+'\n'+ detail)
-   }
+       }
   })()
       .catch((e) => $.logErr(e))
       .finally(() => $.done())
@@ -177,7 +176,7 @@ function toRead() {
 function lookVideo() {
   return new Promise((resolve, reject) => {
     setTimeout(()=>{
-      $.post({url: signurlVal, headers: {Cookie:cookieVal},body: 'event=video_read'},(error, response, data) =>{
+      $.post({url: videoVal, headers: {Cookie:cookieVal},body: 'event=video_read'},(error, response, data) =>{
         if (error){
           $.msg($.name, '观看视频:'+ error)
         }else{
@@ -200,7 +199,6 @@ function StepsTotal() {
       }
       $.get(StepsUrl, (error, response, data) => {
         totalred = JSON.parse(data)
-        $.log("正在统计阅读数据:")
         totalcion = totalred.data.extends.today_total_coin
         if (totalred.ret == 0){
           for (i=0;i<totalred.data.award.length;i++){
@@ -220,7 +218,7 @@ function StepsTotal() {
               videonum = totalred.data.award[i].event_num/2
             }
           }
-          $.log("  已阅读文章"+readnum+"篇\n  浏览视频"+videonum+"分钟\n  今日已打开"+(openreadred+openvideored)+"个红包\n  今日金币收益"+totalcion)
+        //  $.log("  已阅读文章"+readnum+"篇\n  浏览视频"+videonum+"分钟\n  今日已打开"+(openreadred+openvideored)+"个红包\n  今日金币收益"+totalcion)
         }
         resolve()
       })
@@ -272,7 +270,7 @@ function getTotal() {
       } else {
         const obj = JSON.parse(data)
         subTile = '【收益总计】'+obj.data.wealth[0].title +'金币  '+"钱包: " +obj.data.wealth[1].title+'元'
-        $.log("钱包收益共计"+obj.data.wealth[1].title+"元")
+     // $.log("钱包收益共计"+obj.data.wealth[1].title+"元")
       }
       resolve()
     })
@@ -284,6 +282,7 @@ function showmsg() {
     if(readnum||videonum){
       detail = signinfo + `【文章阅读】已读/再读: `+ readnum +`/`+readtitle+` 篇\n`+`【阅读红包】已开/总计: `+openreadred+`/`+readredtotal+` 个🧧\n`+ `【观看视频】已看/再看: `+ videonum +`/`+videotitle+` 分钟\n`+`【视频红包】已开/总计: `+openvideored+`/`+videoredtotal+` 个🧧\n【每日一句】`+Dictum
     }
+        console.log('-----------'+'\n'+$.name+'\n'+subTile+'\n'+ detail)
     if (readnum%notifyInterval==0){
       $.msg($.name,subTile,detail,{ 'open-url': "https://news.qq.com/FERD/cjRedDown.htm", 'media-url': imgurl } )
     }
