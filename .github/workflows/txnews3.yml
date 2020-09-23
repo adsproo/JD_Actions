@@ -4,7 +4,7 @@
 #   branches: 
 #   - master 
 
-name: txnews2
+name: txnews3
 
 on:
   workflow_dispatch:
