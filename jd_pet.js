@@ -1,6 +1,6 @@
 /*
 京东萌宠助手 搬得https://github.com/liuxiaoyucc/jd-helper/blob/master/pet/pet.js
-更新时间:2020-09-06
+更新时间:2020-09-25
 已支持IOS双京东账号,Node.js支持N个京东账号
 脚本兼容: QuantumultX, Surge, Loon, JSBox, Node.js
 // quantumultx
@@ -28,7 +28,7 @@ let shareCodes = [ // IOS本地脚本用户这个列表填入你要助力的好�
   'MTAxODc2NTEzMjAwMDAwMDAzMDI3MTMyOQ==@MTAxODcxOTI2NTAwMDAwMDAyNjA4ODQyMQ==',
 ]
 let message = '', subTitle = '', option = {}, UserName = '';
-let jdNotify = $.getdata('jdPetNotify');//是否关闭通知，false打开，true通知
+let jdNotify = false;//是否关闭通知，false打开通知推送，true关闭通知推送
 let jdServerNotify = true;//是否每次运行脚本后，都发送server酱微信通知提醒,默认是true【true:发送，false:不发送】
 const JD_API_HOST = 'https://api.m.jd.com/client.action';
 let goodsUrl = '', taskInfoKey = [];
@@ -39,6 +39,7 @@ let function_map = {
   browseSingleShopInit: browseSingleShopInit, //浏览店铺1
   browseSingleShopInit2: browseSingleShopInit2, //浏览店铺2
   browseSingleShopInit3: browseSingleShopInit3, //浏览店铺3
+  browseSingleShopInit4: browseSingleShopInit4, //浏览店铺4
   browseShopsInit: browseShopsInit, //浏览店铺s, 目前只有一个店铺
   firstFeedInit: firstFeedInit, //首次喂食
   inviteFriendsInit: inviteFriendsInit, //邀请好友, 暂未处理
@@ -89,11 +90,11 @@ async function jdPet() {
       option['open-url'] = "openApp.jdMobile://";
       $.msg($.name, `【提醒⏰】${$.petInfo.goodsInfo.goodsName}已可领取`, '请去京东APP或微信小程序查看', option);
       if ($.isNode()) {
-        await notify.sendNotify(`${$.name}奖品已可领取`, `京东账号${$.index} ${UserName}\n\n${$.petInfo.goodsInfo.goodsName}已可领取`);
+        await notify.sendNotify(`${$.name}奖品已可领取`, `京东账号${$.index} ${UserName}\n${$.petInfo.goodsInfo.goodsName}已可领取`);
       }
-      if ($.isNode()) {
-        await notify.BarkNotify(`【提醒⏰】${$.petInfo.goodsInfo.goodsName}已可领取`, `请去京东APP或微信小程序查看`);
-      }
+      // if ($.isNode()) {
+      //   await notify.BarkNotify(`【提醒⏰】${$.petInfo.goodsInfo.goodsName}已可领取`, `请去京东APP或微信小程序查看`);
+      // }
       return
     }
     console.log(`\n【您的互助码shareCode】 ${$.petInfo.shareCode}\n`);
@@ -121,11 +122,11 @@ async function jdPet() {
         $.setdata('', 'CookieJD2');//cookie失效，故清空cookie。
       }
       if ($.isNode()) {
-        await notify.sendNotify(`${$.name}cookie已失效`, `京东账号${$.index} ${UserName}\n\n请重新登录获取cookie`);
+        await notify.sendNotify(`${$.name}cookie已失效`, `京东账号${$.index} ${UserName}\n请重新登录获取cookie`);
       }
-      if ($.isNode()) {
-        await notify.BarkNotify(`${$.name}cookie已失效`, `京东账号${$.index} ${UserName}\n请重新登录获取cookie`);
-      }
+      // if ($.isNode()) {
+      //   await notify.BarkNotify(`${$.name}cookie已失效`, `京东账号${$.index} ${UserName}\n请重新登录获取cookie`);
+      // }
     } else {
       console.log(`初始化萌宠失败:  ${initPetTownRes.message}`);
     }
@@ -351,7 +352,19 @@ async function browseSingleShopInit3() {
     }
   }
 }
-
+async function browseSingleShopInit4() {
+  console.log('准备完成 去逛逛好货会场 - 任务');
+  const body = {"index":3,"version":1,"type":1};
+  const body2 = {"index":3,"version":1,"type":2};
+  const response = await request("getSingleShopReward", body);
+  if (response.code === '0' && response.resultCode === '0') {
+    const response2 = await request("getSingleShopReward", body2);
+    console.log(`②浏览指定店铺结果: ${JSON.stringify(response2)}`);
+    if (response2.code === '0' && response2.resultCode === '0') {
+      message += `【去逛逛好货会场】获取狗粮${response2.result.reward}g\n`;
+    }
+  }
+}
 // 浏览店铺任务, 任务可能为多个? 目前只有一个
 async function browseShopsInit() {
   console.log('开始浏览店铺任务');
@@ -409,16 +422,26 @@ async function feedReachInit() {
   console.log('投食任务结束...\n');
 }
 async function showMsg() {
-  if (!jdNotify || jdNotify === 'false') {
+  $.log(`\n${message}\n`);
+  let ctrTemp;
+  if ($.isNode()) {
+    ctrTemp = `${notify.petNotifyControl}` === 'false' && `${jdNotify}` === 'false'
+  } else if ($.getdata('jdPetNotify')) {
+    ctrTemp = $.getdata('jdPetNotify') === 'false';
+  } else {
+    ctrTemp = `${jdNotify}` === 'false';
+  }
+  // jdNotify = `${notify.petNotifyControl}` === 'false' && `${jdNotify}` === 'false' && $.getdata('jdPetNotify') === 'false';
+  if (ctrTemp) {
     $.msg($.name, subTitle, message, option);
     const notifyMessage = message.replace(/[\n\r]/g, '\n\n');
     if (jdServerNotify) {
       if ($.isNode()) {
-        await notify.sendNotify(`${$.name} - 账号${$.index} - ${UserName}`, `${subTitle}\n\n${notifyMessage}`);
+        await notify.sendNotify(`${$.name} - 账号${$.index} - ${UserName}`, `${subTitle}\n${message}`);
       }
-      if ($.isNode()) {
-        await notify.BarkNotify(`${$.name}`, `${subTitle}\n${message}`);
-      }
+      // if ($.isNode()) {
+      //   await notify.BarkNotify(`${$.name}`, `${subTitle}\n${message}`);
+      // }
     }
   }
 }
