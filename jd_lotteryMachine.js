@@ -1,12 +1,12 @@
 /*
 京东抽奖机
-更新时间：2020-11-07 11:09
-脚本说明：五个抽奖活动，【东东抽奖机】【新店福利】【东东福利屋】【东东生活】【闪购盲盒】，点通知只能跳转一个，入口在京东APP玩一玩里面可以看到
+更新时间：2020-11-11 09:24
+脚本说明：六个抽奖活动，【东东抽奖机】【新店福利】【东东福利屋】【东东生活】【闪购盲盒】【疯狂砸金蛋】，点通知只能跳转一个，入口在京东APP玩一玩里面可以看到
 脚本兼容: QuantumultX, Surge, Loon, JSBox, Node.js
 // quantumultx
 [task_local]
 #京东抽奖机
-11 1 * * * https://raw.githubusercontent.com/yangtingxiao/QuantumultX/master/scripts/jd/jd_lotteryMachine.js, tag=京东抽奖机, img-url=https://raw.githubusercontent.com/yangtingxiao/QuantumultX/master/image/jd.png, enabled=true
+11 1 * * * https://raw.githubusercontent.com/yangtingxiao/QuantumultX/master/scripts/jd/jd_lotteryMachine.js, tag=京东抽奖机, img-url=https://raw.githubusercontent.com/yangtingxiao/QuantumultX/master/image/jdlottery.png, enabled=true
 // Loon
 [Script]
 cron "11 1 * * *" script-path=https://raw.githubusercontent.com/yangtingxiao/QuantumultX/master/scripts/jd/jd_lotteryMachine.js,tag=京东抽奖机
@@ -19,8 +19,8 @@ const jdCookieNode = $.isNode() ? require('./jdCookie.js') : '';
 const STRSPLIT = "|";
 const needSum = false;     //是否需要显示汇总
 const printDetail = false;        //是否显示出参详情
-const appIdArr = ['1EFRQxQ','1EFRQxA','1EFRQxw','1EFRQyw','1EFRRxA']
-const shareCodeArr = ['P04z54XCjVXmYaW5m9cZ2f433tIlGBj3JnLHD0','P04z54XCjVXmIaW5m9cZ2f433tIlGWEga-IO2o','P04z54XCjVXm4aW5m9cZ2f433tIlINrBDzgMdY','P04z54XCjVXl4aW5m9cZ2f433tIlHQIDDSzFzg','P04z54XCjVWmIaW5m9cZ2f433tIlJz4FjX2kfk']
+const appIdArr = ['1EFRQxQ','1EFRQxA','1EFRQxw','1EFRQyw','1EFRRxA','1EFRQwA']
+const shareCodeArr = ['P04z54XCjVXmYaW5m9cZ2f433tIlGBj3JnLHD0','P04z54XCjVXmIaW5m9cZ2f433tIlGWEga-IO2o','P04z54XCjVXm4aW5m9cZ2f433tIlINrBDzgMdY','P04z54XCjVXl4aW5m9cZ2f433tIlHQIDDSzFzg','P04z54XCjVWmIaW5m9cZ2f433tIlJz4FjX2kfk','P04z54XCjVXnIaW5m9cZ2f433tIlLKXiUijZw4']
 //const funPrefixArr = ['interact_template','interact_template','wfh']
 //IOS等用户直接用NobyDa的jd cookie
 let cookiesArr = [], cookie = '';
@@ -123,14 +123,13 @@ function interact_template_getHomeData(timeout = 0) {
           for (let i = 0;i < data.data.result.taskVos.length;i ++) {
             console.log("\n" + data.data.result.taskVos[i].taskType + '-' + data.data.result.taskVos[i].taskName  + '-' + (data.data.result.taskVos[i].status === 1 ? `已完成${data.data.result.taskVos[i].times}-未完成${data.data.result.taskVos[i].maxTimes}` : "全部已完成"))
             //签到
-            if (data.data.result.taskVos[i].taskType === 13) {
+            if ([0,13].includes(data.data.result.taskVos[i].taskType)) {
               if (data.data.result.taskVos[i].status === 1) {
                 await harmony_collectScore(data.data.result.taskVos[i].simpleRecordInfoVo.taskToken,data.data.result.taskVos[i].taskId);
               }
               continue
             }
             if (data.data.result.taskVos[i].taskType === 14) {//'data.data.result.taskVos[i].assistTaskDetailVo.taskToken'
-              console.log('您的助力码：'+data.data.result.taskVos[i].assistTaskDetailVo.taskToken)
               await harmony_collectScore(shareCode,data.data.result.taskVos[i].taskId);
               continue
             }
